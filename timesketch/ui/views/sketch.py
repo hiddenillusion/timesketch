@@ -244,8 +244,10 @@ def export(sketch_id):
     csv_out = StringIO()
     csv_writer = csv.DictWriter(
         csv_out, fieldnames=[
-            u'timestamp', u'message', u'timestamp_desc', u'datetime',
-            u'timesketch_label', u'tag'])
+            u'tag', u'datetime', u'timestamp_desc', u'message',
+            u'username', u'computer_name', u'hostname', u'filename',
+            u'parser', u'source', u'size', u'md5_hash', u'sha1_hash',
+            u'sha256_hash', u'timestamp', u'timesketch_label'])
     csv_writer.writeheader()
     for _event in result[u'hits'][u'hits']:
         csv_writer.writerow(
