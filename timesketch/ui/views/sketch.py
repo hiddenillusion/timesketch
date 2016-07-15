@@ -232,9 +232,14 @@ def export(sketch_id):
         host=current_app.config[u'ELASTIC_HOST'],
         port=current_app.config[u'ELASTIC_PORT'])
 
+    total_events = datastore.search(
+        sketch_id, view.query_string, query_filter, indices,
+        aggregations=None, return_results=False)
+
     result = datastore.search(
         sketch_id, view.query_string, query_filter, indices,
-        aggregations=None, return_results=True)
+        aggregations=None, return_results=True,
+        results_limit=total_events[u'hits']['total'])
 
     csv_out = StringIO()
     csv_writer = csv.DictWriter(
