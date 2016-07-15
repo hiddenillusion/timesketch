@@ -42,7 +42,7 @@ class ElasticSearchDataStore(datastore.DataStore):
 
     def search(
             self, sketch_id, query, query_filter, indices, aggregations=None,
-            return_results=True):
+            return_results=True, results_limit=500):
         """Search ElasticSearch. This will take a query string from the UI
         together with a filter definition. Based on this it will execute the
         search request on ElasticSearch and get result back.
@@ -54,11 +54,11 @@ class ElasticSearchDataStore(datastore.DataStore):
             indices: List of indices to query
             aggregations: Dict of Elasticsearch aggregations
             return_results: Boolean indicating if results should be returned
+            results_limit: Integer of max search results to return 
 
         Returns:
             Set of event documents in JSON format
         """
-        LIMIT_RESULTS = 500
 
         if not indices:
             return {u'hits': {u'hits': [], u'total': 0}, u'took': 0}
@@ -164,7 +164,7 @@ class ElasticSearchDataStore(datastore.DataStore):
         # to the function with a decorator and this makes pylint sad.
         # pylint: disable=unexpected-keyword-arg
         return self.client.search(
-            body=query_dict, index=indices, size=LIMIT_RESULTS,
+            body=query_dict, index=indices, size=results_limit,
             search_type=search_type, _source_include=[
                 u'datetime', u'timestamp', u'message', u'timestamp_desc',
                 u'timesketch_label', u'tag'])
