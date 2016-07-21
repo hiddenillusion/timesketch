@@ -265,7 +265,7 @@ class CreateTimelineBase(Command):
                 u'Events inserted: {0:d}\n'.format(self.counter[u'events']))
             es.client.bulk(
                 index=index_name, doc_type=event_type,
-                body=self.events)
+                body=self.events, timeout=30)
             self.events = []
 
     def finish(self, es, timeline_name, index_name, event_type):
