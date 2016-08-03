@@ -152,7 +152,7 @@ class View(AccessControlMixin, LabelMixin, StatusMixin, CommentMixin,
            BaseModel):
     """Implements the View model."""
     name = Column(Unicode(255))
-    query_string = Column(Unicode(255))
+    query_string = Column(Unicode(500))
     query_filter = Column(UnicodeText())
     user_id = Column(Integer, ForeignKey(u'user.id'))
     sketch_id = Column(Integer, ForeignKey(u'sketch.id'))
