@@ -39,6 +39,12 @@ from timesketch.models.user import Group
 from timesketch.models.user import User
 from timesketch.models.sketch import SearchIndex
 
+def get_human_size(size):
+    for x in ['bytes', 'KB', 'MB', 'GB']:
+        if size < 1024.0:
+            return "%3.1f%s" % (size, x)
+        size /= 1024.0
+    return "%3.1f%s" % (size, 'TB')
 
 class DropDataBaseTables(Command):
     """Drop all database tables."""
@@ -352,6 +358,9 @@ class CreateTimelineFromJson(CreateTimelineBase):
             event_type: Type of event (e.g. plaso_event)
             flush_interval: Number of events to queue up before bulk insert
         """
+        from os.path import getsize
+        print("[+] JSON file to ingest is: '{0}'".format(get_human_size(getsize(file_path))))
+        
         timeline_name = unicode(timeline_name.decode(encoding=u'utf-8'))
         index_name = unicode(index_name.decode(encoding=u'utf-8'))
         es = ElasticSearchDataStore(
