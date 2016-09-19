@@ -42,7 +42,7 @@ class ElasticSearchDataStore(datastore.DataStore):
 
     def search(
             self, sketch_id, query, query_filter, indices, aggregations=None,
-            return_results=True, results_limit=500):
+            return_results=True, results_limit=1000):
         """Search ElasticSearch. This will take a query string from the UI
         together with a filter definition. Based on this it will execute the
         search request on ElasticSearch and get result back.
@@ -54,7 +54,7 @@ class ElasticSearchDataStore(datastore.DataStore):
             indices: List of indices to query
             aggregations: Dict of Elasticsearch aggregations
             return_results: Boolean indicating if results should be returned
-            results_limit: Integer of max search results to return 
+            results_limit: Integer of max search results to return
 
         Returns:
             Set of event documents in JSON format
@@ -165,12 +165,17 @@ class ElasticSearchDataStore(datastore.DataStore):
         # pylint: disable=unexpected-keyword-arg
         return self.client.search(
             body=query_dict, index=indices, size=results_limit,
+            search_type=search_type)        
+
+        '''        
+        return self.client.search(
+            body=query_dict, index=indices, size=results_limit,
             search_type=search_type, _source_include=[
                 u'tag', u'datetime', u'timestamp_desc', u'message',
                 u'username', u'computer_name', u'hostname', u'filename',
                 u'parser', u'source', u'size', u'md5_hash', u'sha1_hash',
                 u'sha256_hash', u'timestamp', u'timesketch_label'])
-
+        '''
     def get_event(self, searchindex_id, event_id):
         """Get one event from the datastore.
 
