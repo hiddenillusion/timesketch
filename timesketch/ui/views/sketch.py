@@ -16,6 +16,7 @@
 import csv
 import json
 from StringIO import StringIO
+import xlsxwriter
 
 from flask import abort
 from flask import Blueprint
@@ -216,12 +217,12 @@ def explore(sketch_id, view_id=None):
     u'/sketch/<int:sketch_id>/explore/export/', methods=[u'GET'])
 @login_required
 def export(sketch_id):
-    """Generates CSV from search result.
+    """Generates XLSX from search result.
 
     Args:
         sketch_id: Primary key for a sketch.
     Returns:
-        CSV string with header.
+        XLSX string with header.
     """
     sketch = Sketch.query.get_with_acl(sketch_id)
     view = sketch.get_user_view(current_user)
@@ -241,6 +242,104 @@ def export(sketch_id):
         aggregations=None, return_results=True,
         results_limit=total_events[u'hits']['total'])
 
+    #XLSX
+    xlsx_out = StringIO()
+    workbook = xlsxwriter.Workbook(xlsx_out)
+
+    parsers = []
+    timeline_fields = [
+        u'tag', u'datetime', u'timestamp_desc', u'message',
+        u'username', u'computer_name', u'hostname', u'filename',
+        u'parser', u'source', u'size', u'md5_hash', u'sha1_hash',
+        u'sha256_hash', u'timestamp', u'timesketch_label'
+    ]
+
+    timeline_row = 1
+    for _event in result[u'hits'][u'hits']:
+        parser = _event[u'_source'].get('parser')
+        if not parser:
+            continue
+       
+        if not parser in parsers: 
+            parsers.append(parser)
+    
+        # write timeline worksheet headers
+        timeline_header_col_cnt = 0
+        if 'Timeline' not in workbook.sheetnames:
+            worksheet = workbook.add_worksheet('Timeline')
+        for timeline_header in timeline_fields:
+            worksheet.write(0, timeline_header_col_cnt, timeline_header)
+            timeline_header_col_cnt += 1
+
+        # write timeline worksheet rows
+        timeline_col = 0
+        for timeline_field in timeline_fields:
+            data = _event[u'_source'].get(timeline_field)
+            if isinstance(data, list):
+                new_data = ''
+                for d in data:
+                    # only catching one level for timesketch_label
+                    tmp_data = [] 
+                    if isinstance(d, dict):
+                        for k, v in d.iteritems():
+                            tmp_data.append('{0}: {1}'.format(k, v))
+                    new_data = ' | '.join(n for n in tmp_data)
+            else:
+                new_data = data
+            worksheet.write(timeline_row, timeline_col, new_data)
+            
+            timeline_col += 1
+        timeline_row += 1
+  
+    for parser in parsers: 
+        row = 1
+        for _event in result[u'hits'][u'hits']:
+            if not _event[u'_source'].get('parser'):
+                continue
+
+            if not _event[u'_source'].get('parser') == parser:
+                continue
+
+            if parser not in workbook.sheetnames:
+                worksheet = workbook.add_worksheet(parser)
+                #worksheet = workbook.add_worksheet()
+
+            # write headers
+            header_cnt = 0
+            for header in _event[u'_source']:
+                if header == u'timesketch_label':
+                    continue
+           
+                worksheet.write(0, header_cnt, header)
+                header_cnt += 1
+
+            col = 0
+            for k, v in _event[u'_source'].iteritems():
+                if k == u'timesketch_label':
+                    continue
+
+                if isinstance(v, list):
+                    new_data2 = ''
+                    for i in v:
+                        # only catching one level
+                        tmp_data2 = [] 
+                        if isinstance(i, dict):
+                            for k2, v2 in i.iteritems():
+                                tmp_data.append('{0}: {1}'.format(k2, v2))
+                        new_data2 = ' | '.join(n for n in tmp_data2)
+                else:
+                    new_data2 = v
+                
+                worksheet.write(row, col, new_data2)
+                # forcing this encoding brings up unicode errors so skip it
+                #worksheet.write(row, col, (u'{0}'.format(v.encode(u'utf-8', 'replace') if isinstance(v, basestring) else v)))
+                col += 1
+            row += 1
+        
+    workbook.close()
+    return xlsx_out.getvalue()
+    '''
+    #CSV
     csv_out = StringIO()
     csv_writer = csv.DictWriter(
         csv_out, fieldnames=[
@@ -255,7 +354,7 @@ def export(sketch_id):
                  for k, v in _event[u'_source'].iteritems()))
 
     return csv_out.getvalue()
-
+    '''
 
 @sketch_views.route(
     u'/sketch/<int:sketch_id>/timelines/', methods=[u'GET', u'POST'])
@@ -382,4 +481,3 @@ def event(sketch_id, unused_view_id=None):
     sketch = Sketch.query.get_with_acl(sketch_id)
     return render_template(
         u'sketch/event.html', sketch=sketch)
-
