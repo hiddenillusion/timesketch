@@ -1,7 +1,7 @@
 <div class="card" style="min-height:100px;">
     <div class="pull-left" ng-show="meta" style="padding:10px;">
         <span ng-show="!events.length && meta.es_total_count > 0">
-            <i class="fa fa-circle-o-notch fa-spin"></i> Searching..
+            <i class="fa fa-circle-o-notch fa-spin"></i> Searching...
         </span>
         <span ng-show="events.length || meta.es_total_count == 0">
             {{ meta.es_total_count }} events <span ng-show="meta.numHiddenEvents > 0 && !meta.showHiddenEvents" style="color:red;">({{ meta.numHiddenEvents }} hidden)</span> ({{ meta.es_time/1000 }}s)
@@ -17,10 +17,9 @@
             <span ng-show="meta.showHiddenEvents"><i class="fa fa-eye-slash"></i> Hide </span>
             {{ meta.numHiddenEvents }} hidden events
         </button>
-
         <div class="btn-group" style="margin-left:10px;">
             <button class="btn btn-default" ng-click="filter.order = { 'asc': 'desc', 'desc': 'asc'}[filter.order];applyOrder()"><i ng-class="{'asc': 'fa fa-sort-asc', 'desc': 'fa fa-sort-desc'}[filter.order]"></i> Sort</button>
-            <a class="btn btn-default" href="/sketch/{{ sketchId }}/explore/export/" download="export.csv"><i class="fa fa-cloud-download"></i> Export</a>
+            <a class="btn btn-default" href="/sketch/{{ sketchId }}/explore/export/" download="timesketch_export.xlsx"><i class="fa fa-cloud-download"></i> Export</a>
             <button class="btn btn-default" ng-click="toggleAll()"><i class="fa fa-check"></i> Toggle all</button>
             <button class="btn btn-default" ng-click="addStar()" ng-disabled="!anySelected"><i class="fa fa-star icon-yellow"></i> Add star</button>
             <button class="btn btn-default" ng-click="removeStar()" ng-disabled="!anySelected"><i class="fa fa-star icon-grey"></i> Remove star</button>
@@ -31,4 +30,8 @@
     <div ng-repeat="event in events">
         <ts-event ng-hide="event.hidden && !meta.showHiddenEvents" event="::event" meta="::meta" sketch-id="::sketchId" prev-timestamp="::events[$index-1]['_source'].timestamp" next-timestamp="::events[$index+1]['_source'].timestamp" index="::$index" order="::filter.order"></ts-event>
     </div>
+    <center>
+        <button class="btn btn-default" href="/sketch/{{ sketchID }}/explore/export/" style=""><i class="fa fa-arrow-left"></i>Previous Page</button>
+        <button class="btn btn-default" href="/sketch/{{ sketchID }}/explore/export/" style="">Next Page <i class="fa fa-arrow-right"></i></button>
+    </center>
 </div>
